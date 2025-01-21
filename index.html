@@ -1,14 +1,103 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>360&deg; Image</title>
-    <meta name="description" content="360&deg; Image - A-Frame">
-    <script src="aframe-master.js"></script>
-  </head>
-  <body>
-    <a-scene>
-      <a-sky src="IMG-20241217-WA0000.jpg" rotation="0 -130 0"></a-sky>
-    </a-scene>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-extras@3.3.0/dist/aframe-extras.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script>
+    <title>Proyecto 360º</title>
+    <script>
+        AFRAME.registerComponent('scene-switcher', {
+          schema: {
+            images: {type: 'array', default: ['IMG-20241217-WA0000.jpg', 'M3_Detailed_Render_equirectangular-png_An_epic_foto_of_1700222633_12874654.png']}
+          },
+          init: function () {
+            this.currentIndex = 0; // Índice inicial
+            this.updateSky(); // Carga la primera escena
+            
+            // Configurar control de VR con botones
+            this.el.addEventListener('abuttondown', this.nextScene.bind(this)); // Botón "A" del mando VR
+            this.el.addEventListener('bbuttondown', this.previousScene.bind(this)); // Botón "B" del mando VR
+          },
+          nextScene: function () {
+            this.currentIndex = (this.currentIndex + 1) % this.data.images.length;
+            this.updateSky();
+          },
+          previousScene: function () {
+            this.currentIndex = (this.currentIndex - 1 + this.data.images.length) % this.data.images.length;
+            this.updateSky();
+          },
+          updateSky: function () {
+            var currentSrc = this.data.images[this.currentIndex];
+            var sky = document.querySelector('a-sky');
+            var scene = document.querySelector('a-scene');
+            
+            // Manejar imágenes y videos
+            if (currentSrc.endsWith('.MP4')) {
+                let videoEntity = document.createElement('a-video');
+                videoEntity.setAttribute('src', currentSrc);
+                 videoEntity.setAttribute('loop', 'true');
+                 videoEntity.setAttribute('autoplay', 'true');
+                 videoEntity.setAttribute('position', '0 1.6 -4');
+                 videoEntity.setAttribute('width', '16');
+                 videoEntity.setAttribute('height', '9');
+
+                // Eliminar el sky actual y agregar el video
+                if (sky) scene.removeChild(sky);
+                let existingVideo = scene.querySelector('a-video');
+                if (existingVideo) scene.removeChild(existingVideo);
+                scene.appendChild(videoEntity);
+            } else {
+                // Eliminar a-video si existe y volver a agregar a-sky
+                let existingVideo = scene.querySelector('a-video');
+                if (existingVideo) scene.removeChild(existingVideo);
+
+                if (!sky) {
+                    sky = document.createElement('a-sky');
+                    scene.appendChild(sky);
+                }
+                sky.setAttribute('src', currentSrc);
+            }
+          }
+        });
+
+        // Funciones para los botones de la interfaz HTML
+        function boton_derecha() {
+          var sceneEntity = document.querySelector('[scene-switcher]');
+          if (sceneEntity) {
+            sceneEntity.components['scene-switcher'].nextScene();
+          }
+        }
+
+        function boton_izquierda() {
+          var sceneEntity = document.querySelector('[scene-switcher]');
+          if (sceneEntity) {
+            sceneEntity.components['scene-switcher'].previousScene();
+          }
+        }
+    </script>
+</head>
+<body>
+    <!-- Botones en la interfaz HTML -->
+    <div class="boton-derecha">
+        <button onclick="boton_derecha()" class="boton-next">🡲</button>
+    </div>
+
+    <div class="boton-izquierda">
+        <button onclick="boton_izquierda()" class="boton-next">🡰</button>
+    </div>
+
+    <!-- Escena principal de A-Frame -->
+    <div class="div2">
+        <a-scene class="escena">
+            <!-- Controles para mando VR -->
+            <a-entity oculus-touch-controls="hand: right" scene-switcher></a-entity>
+
+            <!-- Primera escena inicial -->
+            <a-sky src="IMG-20241217-WA0000.jpg" rotation="0 -130 0"></a-sky>
+        </a-scene>
+    </div>
+</body>
 </html>
